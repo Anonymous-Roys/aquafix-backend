@@ -32,4 +32,35 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+// Get historical sensor data
+router.get('/history', async (req, res) => {
+  try {
+    const { range } = req.query;
+    let dateFilter = new Date();
+    
+    switch (range) {
+      case '24h':
+        dateFilter.setHours(dateFilter.getHours() - 24);
+        break;
+      case '7d':
+        dateFilter.setDate(dateFilter.getDate() - 7);
+        break;
+      case '30d':
+        dateFilter.setDate(dateFilter.getDate() - 30);
+        break;
+      default:
+        dateFilter.setHours(dateFilter.getHours() - 24);
+    }
+    
+    const data = await SensorData.find({
+      timestamp: { $gte: dateFilter }
+    }).sort({ timestamp: 1 });
+    
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
